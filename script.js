@@ -20,6 +20,11 @@ function update(time) {
     return;
   }
 
+  if (score >= 500){
+      
+    return;
+  }
+
   const delta = time - lastTime;
 
   updateGround(delta, speedScale);
@@ -102,7 +107,7 @@ function incrementCustomProperty(elem, prop, inc) {
 
 /* GROUND MOVEMENT */
 
-const GROUND_SPEED = 0.05;
+const GROUND_SPEED = 0.1;
 const grounds = document.querySelectorAll(".ground");
 
 function setupGround() {
@@ -124,7 +129,7 @@ function updateGround(delta, speedScale) {
 
 const dino = document.querySelector("#dino");
 const JUMP_SPEED = 0.45;
-const GRAVITY = 0.0015;
+const GRAVITY = 0.0020;
 const DINO_FRAME_COUNT = 2;
 const FRAME_TIME = 100;
 
@@ -154,18 +159,18 @@ function getDinoRect() {
 }
 
 function setDinoLose() {
-  dino.src = "assets/dino-lose.png";
+  dino.src = "stock/img/dino-lose.png";
 }
 
 function handleRun(delta, speedScale) {
   if (isJumping) {
-    dino.src = `assets/dino-stationary.png`;
+    dino.src = `stock/img/dino-stationary.png`;
     return;
   }
 
   if (currentFrameTime >= FRAME_TIME) {
-    dinoFrame = (dinoFrame + 1) % DINO_FRAME_COUNT;
-    dino.src = `assets/dino-run-${dinoFrame}.png`; /* switch between images to simulate movement */
+    
+    dino.src = `stock/img/dino-stationary.png`; /* switch between images to simulate movement */
     currentFrameTime -= FRAME_TIME;
   }
   currentFrameTime += delta * speedScale;
@@ -193,7 +198,7 @@ function onJump(e) {
 
 /* ADD CACTUS */
 
-const CACTUS_SPEED = 0.05;
+const CACTUS_SPEED = 0.10;
 const CACTUS_INTERVAL_MIN = 500;
 const CACTUS_INTERVAL_MAX = 2000;
 
@@ -230,7 +235,7 @@ function getCactusRects() {
 
 function createCactus() {
   const cactus = document.createElement("img");
-  cactus.src = "assets/cactus.png";
+  cactus.src = "stock/img/cactus.png";
   cactus.classList.add("cactus");
   setCustomProperty(cactus, "--left", 100);
   game.append(cactus); 
