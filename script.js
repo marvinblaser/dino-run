@@ -3,11 +3,25 @@ const SPEED_SCALE = 0.00001;
 let blurPage = document.querySelector(".blur");
 let startButton = document.querySelector(".start-button");
 let start = document.querySelector(".start");
+let jumpButton = document.querySelector(".jump"); // Sélection de la div "jump"
+let win = document.querySelector(".win");
 
 const game = document.querySelector("#game");
 const scoreDisplay = document.querySelector("#score");
-const startMessage = document.querySelector("#start-message");
 const gameoverMessage = document.querySelector("#gameover-message");
+
+let help = document.querySelector(".help");
+document.querySelector(".back").addEventListener("click", ()=>{
+    document.querySelector(".skip").style.display = "none";
+  })
+  
+help.addEventListener("click", ()=>{
+  document.querySelector(".skip").style.display = "flex";
+})
+
+jumpButton.addEventListener("click", () => { // Ajout d'un gestionnaire d'événements de clic à la div "jump"
+  onJump(); // Appel de la fonction onJump() lorsque la div "jump" est cliquée
+});
 
 startButton.addEventListener("click", () => {
   start.remove();
@@ -28,7 +42,8 @@ function update(time) {
     return;
   }
 
-  if (score >= 500) {
+  if (score >= 300) {
+    end();
     return;
   }
 
@@ -46,6 +61,10 @@ function update(time) {
   window.requestAnimationFrame(update);
 }
 
+function end(){
+  win.style.display = "flex"
+}
+
 function startGame() {
   lastTime = null;
   speedScale = 1;
@@ -53,7 +72,6 @@ function startGame() {
   setupGround();
   setupDino();
   setupCactus();
-  startMessage.classList.add("hide");
   gameoverMessage.classList.add("hide");
   window.requestAnimationFrame(update);
 }
@@ -82,15 +100,12 @@ function checkGameOver() {
   const dinoRect = getDinoRect();
   return getCactusRects().some((rect) =>
     checkCollision(rect, dinoRect)
-  ); /* check collision with any of the cactus */
+  );
 }
 
 function handleGameOver() {
   setDinoLose();
-    document.addEventListener("keydown", startGame, {
-      once: true,
-    }); /* prevents accidental click */
-    gameoverMessage.classList.remove("hide");
+  gameoverMessage.classList.remove("hide");
 }
 
 /* HANDLING CSS PROPERTIES */
@@ -126,10 +141,10 @@ function updateGround(delta, speedScale) {
       ground,
       "--left",
       delta * speedScale * GROUND_SPEED * -1
-    ); /* moves the ground according to game speed */
+    );
 
     if (getCustomProperty(ground, "--left") <= -300) {
-      incrementCustomProperty(ground, "--left", 600); /* loop the elements */
+      incrementCustomProperty(ground, "--left", 600);
     }
   });
 }
@@ -151,11 +166,6 @@ function setupDino() {
   yVelocity = 0;
 
   setCustomProperty(dino, "--bottom", 0);
-  document.removeEventListener(
-    "keydown",
-    onJump
-  ); /* reset the dinosaur if the player dies while jumping */
-  document.addEventListener("keydown", onJump);
 }
 
 function updateDino(delta, speedScale) {
@@ -164,7 +174,7 @@ function updateDino(delta, speedScale) {
 }
 
 function getDinoRect() {
-  return dino.getBoundingClientRect(); /* get the dinosaur hitbox */
+  return dino.getBoundingClientRect();
 }
 
 function setDinoLose() {
@@ -178,7 +188,7 @@ function handleRun(delta, speedScale) {
   }
 
   if (currentFrameTime >= FRAME_TIME) {
-    dino.src = `stock/img/dino-stationary.png`; /* switch between images to simulate movement */
+    dino.src = `stock/img/dino-stationary.png`;
     currentFrameTime -= FRAME_TIME;
   }
   currentFrameTime += delta * speedScale;
@@ -187,18 +197,22 @@ function handleRun(delta, speedScale) {
 function handleJump(delta) {
   if (!isJumping) return;
 
+  let previousBottom = getCustomProperty(dino, "--bottom");
   incrementCustomProperty(dino, "--bottom", yVelocity * delta);
 
-  if (getCustomProperty(dino, "--bottom") <= 0) {
+  // Si le dinosaure commence à descendre après avoir atteint son point le plus haut
+  if (previousBottom >= 0 && getCustomProperty(dino, "--bottom") < 0) {
     setCustomProperty(dino, "--bottom", 0);
     isJumping = false;
+    yVelocity = 0;
+  } else {
+    // La gravité continue à agir pour faire descendre le dinosaure
+    yVelocity -= GRAVITY * delta;
   }
-
-  yVelocity -= GRAVITY * delta;
 }
 
-function onJump(e) {
-  if (e.code !== "Space" || isJumping) return;
+function onJump() {
+  if (isJumping) return;
 
   yVelocity = JUMP_SPEED;
   isJumping = true;
@@ -215,7 +229,7 @@ let nextCactusTime;
 function setupCactus() {
   nextCactusTime = CACTUS_INTERVAL_MIN;
   document.querySelectorAll(".cactus").forEach((cactus) => {
-    cactus.remove(); /* remove cactus when game restart */
+    cactus.remove();
   });
 }
 
@@ -227,7 +241,7 @@ function updateCactus(delta, speedScale) {
       delta * speedScale * CACTUS_SPEED * -1
     );
     if (getCustomProperty(cactus, "--left") <= -100) {
-      cactus.remove(); /* remove cactus off screen so it doesn't impair game performance */
+      cactus.remove();
     }
   });
 
@@ -241,7 +255,7 @@ function updateCactus(delta, speedScale) {
 
 function getCactusRects() {
   return [...document.querySelectorAll(".cactus")].map((cactus) => {
-    return cactus.getBoundingClientRect(); /* get the hitbox of all the cactus on the screen */
+    return cactus.getBoundingClientRect();
   });
 }
 
@@ -256,5 +270,5 @@ function createCactus() {
 function randomizer(min, max) {
   return Math.floor(
     Math.random() * (max - min + 1) + min
-  ); /* choose a number between minimum and maximum */
+  );
 }
