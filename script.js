@@ -1,11 +1,19 @@
 const SPEED_SCALE = 0.00001;
 
+let blurPage = document.querySelector(".blur");
+let startButton = document.querySelector(".start-button");
+let start = document.querySelector(".start");
+
 const game = document.querySelector("#game");
 const scoreDisplay = document.querySelector("#score");
 const startMessage = document.querySelector("#start-message");
 const gameoverMessage = document.querySelector("#gameover-message");
 
-document.addEventListener("keydown", startGame, { once: true });
+startButton.addEventListener("click", () => {
+  start.remove();
+  blurPage.remove();
+  startGame();
+});
 
 /* general variables */
 let lastTime;
@@ -13,15 +21,14 @@ let speedScale;
 let score;
 
 /* frame update */
-function update(time) { 
+function update(time) {
   if (lastTime == null) {
     lastTime = time;
     window.requestAnimationFrame(update);
     return;
   }
 
-  if (score >= 500){
-      
+  if (score >= 500) {
     return;
   }
 
@@ -52,12 +59,12 @@ function startGame() {
 }
 
 /* speeds up the game over time */
-function updateSpeedScale(delta) { 
+function updateSpeedScale(delta) {
   speedScale += delta * SPEED_SCALE;
 }
 
 function updateScore(delta) {
-  score += delta * 0.01; 
+  score += delta * 0.01;
   scoreDisplay.textContent = Math.floor(score);
 }
 
@@ -73,19 +80,18 @@ function checkCollision(rect1, rect2) {
 
 function checkGameOver() {
   const dinoRect = getDinoRect();
-  return getCactusRects().some(rect => checkCollision(rect, dinoRect)); /* check collision with any of the cactus */
+  return getCactusRects().some((rect) =>
+    checkCollision(rect, dinoRect)
+  ); /* check collision with any of the cactus */
 }
 
 function handleGameOver() {
   setDinoLose();
-  setTimeout(() => {
-    document.addEventListener("keydown", startGame, { once: true }); /* prevents accidental click */
+    document.addEventListener("keydown", startGame, {
+      once: true,
+    }); /* prevents accidental click */
     gameoverMessage.classList.remove("hide");
-  }, 100);
 }
-
-
-
 
 /* HANDLING CSS PROPERTIES */
 
@@ -104,7 +110,6 @@ function incrementCustomProperty(elem, prop, inc) {
   setCustomProperty(elem, prop, getCustomProperty(elem, prop) + inc);
 }
 
-
 /* GROUND MOVEMENT */
 
 const GROUND_SPEED = 0.1;
@@ -116,8 +121,12 @@ function setupGround() {
 }
 
 function updateGround(delta, speedScale) {
-  grounds.forEach(ground => {
-    incrementCustomProperty(ground, "--left", delta * speedScale * GROUND_SPEED * -1); /* moves the ground according to game speed */
+  grounds.forEach((ground) => {
+    incrementCustomProperty(
+      ground,
+      "--left",
+      delta * speedScale * GROUND_SPEED * -1
+    ); /* moves the ground according to game speed */
 
     if (getCustomProperty(ground, "--left") <= -300) {
       incrementCustomProperty(ground, "--left", 600); /* loop the elements */
@@ -129,23 +138,23 @@ function updateGround(delta, speedScale) {
 
 const dino = document.querySelector("#dino");
 const JUMP_SPEED = 0.45;
-const GRAVITY = 0.0020;
-const DINO_FRAME_COUNT = 2;
+const GRAVITY = 0.002;
 const FRAME_TIME = 100;
 
 let isJumping;
-let dinoFrame;
 let currentFrameTime;
 let yVelocity;
 
 function setupDino() {
   isJumping = false;
-  dinoFrame = 0;
   currentFrameTime = 0;
   yVelocity = 0;
 
   setCustomProperty(dino, "--bottom", 0);
-  document.removeEventListener("keydown", onJump); /* reset the dinosaur if the player dies while jumping */
+  document.removeEventListener(
+    "keydown",
+    onJump
+  ); /* reset the dinosaur if the player dies while jumping */
   document.addEventListener("keydown", onJump);
 }
 
@@ -169,7 +178,6 @@ function handleRun(delta, speedScale) {
   }
 
   if (currentFrameTime >= FRAME_TIME) {
-    
     dino.src = `stock/img/dino-stationary.png`; /* switch between images to simulate movement */
     currentFrameTime -= FRAME_TIME;
   }
@@ -198,7 +206,7 @@ function onJump(e) {
 
 /* ADD CACTUS */
 
-const CACTUS_SPEED = 0.10;
+const CACTUS_SPEED = 0.1;
 const CACTUS_INTERVAL_MIN = 500;
 const CACTUS_INTERVAL_MAX = 2000;
 
@@ -206,18 +214,22 @@ let nextCactusTime;
 
 function setupCactus() {
   nextCactusTime = CACTUS_INTERVAL_MIN;
-  document.querySelectorAll(".cactus").forEach(cactus => {
+  document.querySelectorAll(".cactus").forEach((cactus) => {
     cactus.remove(); /* remove cactus when game restart */
-  })
+  });
 }
 
 function updateCactus(delta, speedScale) {
-  document.querySelectorAll(".cactus").forEach(cactus => {
-    incrementCustomProperty(cactus, "--left", delta * speedScale * CACTUS_SPEED * -1);
+  document.querySelectorAll(".cactus").forEach((cactus) => {
+    incrementCustomProperty(
+      cactus,
+      "--left",
+      delta * speedScale * CACTUS_SPEED * -1
+    );
     if (getCustomProperty(cactus, "--left") <= -100) {
       cactus.remove(); /* remove cactus off screen so it doesn't impair game performance */
     }
-  })
+  });
 
   if (nextCactusTime <= 0) {
     createCactus();
@@ -228,9 +240,9 @@ function updateCactus(delta, speedScale) {
 }
 
 function getCactusRects() {
-  return [...document.querySelectorAll(".cactus")].map(cactus => {
+  return [...document.querySelectorAll(".cactus")].map((cactus) => {
     return cactus.getBoundingClientRect(); /* get the hitbox of all the cactus on the screen */
-  })
+  });
 }
 
 function createCactus() {
@@ -238,9 +250,11 @@ function createCactus() {
   cactus.src = "stock/img/cactus.png";
   cactus.classList.add("cactus");
   setCustomProperty(cactus, "--left", 100);
-  game.append(cactus); 
+  game.append(cactus);
 }
 
 function randomizer(min, max) {
-  return Math.floor(Math.random() * (max - min + 1) + min); /* choose a number between minimum and maximum */
+  return Math.floor(
+    Math.random() * (max - min + 1) + min
+  ); /* choose a number between minimum and maximum */
 }
